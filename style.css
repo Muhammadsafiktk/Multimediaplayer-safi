@@ -1,0 +1,268 @@
+/* ============================================================
+   MERI MIXTAPE — personal video & audio collection
+   Design: late-night cassette-vault aesthetic
+   Palette : #1A1522 (ink)  #241C30 (surface)  #2E2440 (surface-2)
+             #C9A227 (tape-gold)  #E8734A (rewind-orange)  #F1E7D0 (cream)
+   Type    : "Fraunces" (display, warm serif w/ optical size)
+             "Space Grotesk" (labels / mono-ish UI)
+             "Work Sans" (body)
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600&family=Work+Sans:wght@400;500&display=swap');
+
+:root {
+  --ink:        #1a1522;
+  --ink-deep:   #120e18;
+  --surface:    #241c30;
+  --surface-2:  #2e2440;
+  --line:       rgba(241, 231, 208, 0.12);
+  --gold:       #c9a227;
+  --gold-soft:  #e4c85f;
+  --orange:     #e8734a;
+  --cream:      #f1e7d0;
+  --cream-dim:  rgba(241, 231, 208, 0.6);
+
+  --font-display: "Fraunces", Georgia, serif;
+  --font-label:   "Space Grotesk", monospace;
+  --font-body:    "Work Sans", sans-serif;
+
+  --radius: 14px;
+  --spool:  46px; /* cassette spool size, reused for rhythm */
+}
+
+/* ---------- reset ---------- */
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 900px 600px at 12% -10%, rgba(201,162,39,0.10), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 0%, rgba(232,115,74,0.08), transparent 55%),
+    var(--ink);
+  color: var(--cream);
+  font-family: var(--font-body);
+  line-height: 1.5;
+  padding: clamp(24px, 6vw, 72px) clamp(18px, 6vw, 96px) 0;
+  overflow-x: hidden;
+}
+
+/* faint tape-hiss grain overlay so the dark bg doesn't feel flat */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- header / mixtape label ---------- */
+h1 {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-size: clamp(1.7rem, 3.4vw, 2.8rem);
+  letter-spacing: -0.01em;
+  color: var(--cream);
+  margin: 0 0 6px;
+  padding-bottom: 18px;
+  border-bottom: 1px dashed var(--line);
+}
+
+h1::before {
+  content: "SIDE A";
+  display: block;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.32em;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+
+h1:nth-of-type(2)::before {
+  content: "SIDE B";
+}
+
+/* container holding each grid */
+body > div {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: clamp(16px, 2.4vw, 26px);
+  margin: 28px 0 8px;
+}
+
+/* the two stray <br><br> tags still collapse fine; just tighten their footprint */
+br { line-height: 0; }
+
+/* ============================================================
+   VIDEO CARDS — presented as cassette-window tiles
+   ============================================================ */
+video {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 9 / 16;
+  max-width: 100%;
+  display: block;
+  border-radius: var(--radius);
+  background: var(--ink-deep);
+  border: 1px solid var(--line);
+  outline: none;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.03) inset,
+    0 18px 34px -18px rgba(0,0,0,0.7);
+  transition: transform 0.35s cubic-bezier(.22,1,.36,1), box-shadow 0.35s ease, border-color 0.35s ease;
+}
+
+video:hover,
+video:focus-visible {
+  transform: translateY(-6px) scale(1.015);
+  border-color: rgba(201,162,39,0.5);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.05) inset,
+    0 26px 46px -20px rgba(0,0,0,0.8),
+    0 0 0 1px rgba(201,162,39,0.25);
+}
+
+video:focus-visible {
+  outline: 2px solid var(--gold-soft);
+  outline-offset: 3px;
+}
+
+/* number each video like tape tracks — order is real here (favourite 1..6) */
+body > div:first-of-type {
+  counter-reset: track;
+}
+body > div:first-of-type video {
+  counter-increment: track;
+  position: relative;
+}
+
+/* wrap each media element visually via a "track slot" using generated content
+   isn't possible on <video>/<audio> directly, so we lean on outer spacing +
+   a gold rule as the track marker instead of injecting elements */
+body > div:first-of-type {
+  padding-top: 4px;
+}
+
+/* ============================================================
+   AUDIO ROW — reimagined as tape-deck strips, not browser defaults
+   ============================================================ */
+body > div:last-of-type {
+  grid-template-columns: 1fr;
+  gap: 14px;
+  max-width: 620px;
+}
+
+audio {
+  width: 100%;
+  height: 54px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  outline: none;
+  padding: 0 6px;
+  box-shadow: 0 10px 22px -14px rgba(0,0,0,0.6);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+audio:hover,
+audio:focus-visible {
+  border-color: rgba(232,115,74,0.55);
+  box-shadow: 0 14px 28px -14px rgba(0,0,0,0.7), 0 0 0 1px rgba(232,115,74,0.2);
+  transform: translateY(-2px);
+}
+
+audio::-webkit-media-controls-panel {
+  background: var(--surface);
+}
+
+/* ---------- section rhythm ---------- */
+h1:nth-of-type(2) {
+  margin-top: 8px;
+}
+
+/* kill the plain <br><br> gaps from inline styling by relying on this
+   consistent section spacing instead */
+h1 + br,
+br + br {
+  display: none;
+}
+
+/* ============================================================
+   FOOTER — cassette spine label
+   ============================================================ */
+footer {
+  position: relative;
+  z-index: 1;
+  margin-top: clamp(48px, 8vw, 96px);
+  padding: 22px clamp(16px, 4vw, 32px);
+  border-top: 1px dashed var(--line);
+  display: flex;
+  justify-content: center;
+}
+
+footer pre {
+  all: unset;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  color: var(--cream-dim);
+  white-space: normal;
+  text-align: center;
+}
+
+footer pre::before {
+  content: "◉ REC   ▸ PLAY   ◼ STOP   —   ";
+  color: var(--gold);
+  letter-spacing: 0.2em;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 900px) {
+  body > div:first-of-type {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  body {
+    padding: 20px 16px 0;
+  }
+  body > div:first-of-type {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  h1 {
+    font-size: 1.4rem;
+  }
+  audio {
+    height: 48px;
+  }
+  footer pre::before {
+    content: "◉ ▸ ◼ — ";
+  }
+}
+
+@media (max-width: 360px) {
+  body > div:first-of-type {
+    grid-template-columns: 1fr 1fr;
+  }
+}
